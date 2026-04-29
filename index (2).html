@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Digital Darshan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold-light: #ffda75;
+      --gold-main: #d4af37;
+      --gold-dark: #aa8222;
+      --brass-dark: #5a3a12;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background-color: #000;
+      font-family: 'Playfair Display', serif;
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* --- Fullscreen Background Image --- */
+    .fullscreen-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 20%;
+      z-index: 1;
+    }
+
+    /* Soft shadow at the bottom to make artifacts stand out */
+    .bottom-vignette {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 45%;
+      background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 30%, transparent 100%);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* --- Top Dedication --- */
+    .dedication {
+      position: absolute;
+      top: env(safe-area-inset-top, 40px);
+      text-align: center;
+      z-index: 10;
+      width: 100%;
+      padding: 0 20px;
+      pointer-events: none;
+    }
+    .dedication h1 { font-size: 28px; color: var(--gold-light); font-style: italic; font-weight: 800; text-shadow: 2px 2px 4px rgba(0,0,0,0.9), 0 0 15px rgba(0,0,0,0.8); }
+    .dedication p { font-size: 14px; color: #fff; letter-spacing: 2px; text-transform: uppercase; margin-top: 5px; text-shadow: 1px 1px 3px rgba(0,0,0,0.9); }
+
+    /* --- Floating Flowers Layer --- */
+    #flower-container {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 20;
+      overflow: hidden;
+    }
+
+    .flower {
+      position: absolute;
+      top: -40px;
+      filter: drop-shadow(0 3px 5px rgba(0,0,0,0.7));
+      animation: fall linear forwards;
+    }
+
+    @keyframes fall {
+      0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+      10% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* --- Aarti Orbit Animation --- */
+    .aarti-wrapper {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0; height: 0;
+      z-index: 25;
+      display: none;
+    }
+    .aarti-wrapper.active {
+      display: block;
+      animation: orbitCenter 3.5s linear infinite;
+    }
+    .aarti-diya {
+      position: absolute;
+      font-size: 60px;
+      top: -30px; left: -30px;
+      filter: drop-shadow(0 0 20px #ffaa00) drop-shadow(0 0 40px #ff4500);
+      animation: orbitCounter 3.5s linear infinite;
+    }
+
+    @keyframes orbitCenter {
+      0% { transform: rotate(0deg) translateY(-140px); }
+      100% { transform: rotate(360deg) translateY(-140px); }
+    }
+    @keyframes orbitCounter {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(-360deg); }
+    }
+
+    /* --- Incense Orbit & Heavy Smoke --- */
+    .incense-orbit-center {
+      position: absolute;
+      bottom: 35%;
+      left: 50%;
+      width: 0; height: 0;
+      z-index: 15;
+      opacity: 0;
+      transition: opacity 1s ease;
+      pointer-events: none;
+    }
+    .incense-orbit-center.active {
+      opacity: 1;
+      animation: orbitDhoop 4s linear infinite;
+    }
+    
+    .incense-wrapper {
+      position: absolute;
+      top: -30px; left: -20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .incense-orbit-center.active .incense-wrapper {
+      animation: orbitDhoopCounter 4s linear infinite;
+    }
+
+    @keyframes orbitDhoop {
+      0% { transform: rotate(0deg) translateY(-70px); }
+      100% { transform: rotate(360deg) translateY(-70px); }
+    }
+    @keyframes orbitDhoopCounter {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(-360deg); }
+    }
+
+    .sticks-container { display: flex; justify-content: center; gap: 5px; margin-bottom: -5px; }
+    .stick { position: relative; display: flex; flex-direction: column; align-items: center; }
+    .stick.left { transform: rotate(-10deg); }
+    .stick.right { transform: rotate(10deg); }
+    .glowing-tip { width: 3px; height: 4px; background: #ffaa00; border-radius: 50%; box-shadow: 0 0 8px #ff4500, 0 0 15px #ff5e00; margin-bottom: -1px; z-index: 2; }
+    .stick-base { width: 3px; height: 50px; background: #2a1105; border-radius: 2px; }
+    .incense-base { width: 40px; height: 12px; background: linear-gradient(90deg, var(--gold-dark) 0%, var(--gold-light) 50%, var(--gold-dark) 100%); border-radius: 10px 10px 4px 4px; box-shadow: 0 5px 10px rgba(0,0,0,0.8); z-index: 3; }
+
+    /* Heavy Swirling Smoke */
+    .smoke-particle { 
+      position: absolute; 
+      top: -10px; 
+      width: 12px; 
+      height: 12px; 
+      background: rgba(220, 220, 230, 0.55); 
+      border-radius: 50%; 
+      filter: blur(5px); 
+      opacity: 0; 
+    }
+    
+    .incense-orbit-center.active .smoke-particle { 
+      animation: heavySwirl 3s infinite cubic-bezier(0.4, 0, 0.2, 1); 
+    }
+    
+    .smoke-particle:nth-child(1) { animation-delay: 0.0s; width: 14px; filter: blur(6px); }
+    .smoke-particle:nth-child(2) { animation-delay: 0.5s; width: 10px; filter: blur(4px); }
+    .smoke-particle:nth-child(3) { animation-delay: 1.0s; width: 16px; filter: blur(7px); }
+    .smoke-particle:nth-child(4) { animation-delay: 1.5s; width: 12px; filter: blur(5px); }
+    .smoke-particle:nth-child(5) { animation-delay: 2.0s; width: 18px; filter: blur(8px); }
+    .smoke-particle:nth-child(6) { animation-delay: 2.5s; width: 14px; filter: blur(6px); }
+
+    @keyframes heavySwirl {
+      0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 0; }
+      10% { opacity: 0.7; }
+      30% { transform: translate(-15px, -60px) scale(3.5) rotate(45deg); opacity: 0.5; }
+      50% { transform: translate(20px, -120px) scale(6) rotate(90deg); opacity: 0.3; }
+      75% { transform: translate(-25px, -180px) scale(8.5) rotate(135deg); opacity: 0.15; }
+      100% { transform: translate(15px, -250px) scale(11) rotate(180deg); opacity: 0; }
+    }
+
+    /* --- THE BIG CREATIVE AMULET BUTTONS --- */
+    .artifact-dock {
+      position: absolute;
+      bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+      width: 100%;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end;
+      z-index: 50;
+    }
+
+    .action-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .amulet {
+      width: 75px;
+      height: 75px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #fff3b0 0%, var(--gold-main) 40%, var(--brass-dark) 90%);
+      border: 3px solid var(--gold-light);
+      box-shadow: 
+        0 15px 25px rgba(0,0,0,0.9),
+        inset 0 -6px 10px rgba(0,0,0,0.5),
+        inset 0 6px 10px rgba(255, 255, 255, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 34px;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      z-index: 2;
+    }
+
+    .amulet::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 100%; height: 100%;
+      background: transparent;
+      border: 2px solid var(--gold-light);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      z-index: -1;
+    }
+
+    .amulet-label {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--gold-light);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-shadow: 0 4px 10px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,1);
+      transition: color 0.3s ease;
+    }
+
+    .action-item:active .amulet {
+      transform: scale(0.9) translateY(4px);
+      box-shadow: 0 5px 10px rgba(0,0,0,0.9), inset 0 -2px 5px rgba(0,0,0,0.5), inset 0 2px 5px rgba(255, 255, 255, 0.6);
+    }
+
+    .action-item.active .amulet {
+      border-color: #fff;
+      box-shadow: 
+        0 0 30px rgba(255, 218, 117, 0.8),
+        0 0 60px rgba(212, 175, 55, 0.5),
+        inset 0 -6px 10px rgba(0,0,0,0.4), 
+        inset 0 6px 10px rgba(255, 255, 255, 0.8);
+      filter: brightness(1.1);
+    }
+
+    .action-item.active .amulet::after {
+      animation: divineRipple 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .action-item.active .amulet-label {
+      color: #fff;
+      text-shadow: 0 0 10px var(--gold-main), 0 0 20px var(--gold-light);
+    }
+
+    @keyframes divineRipple {
+      0% { width: 100%; height: 100%; opacity: 0.8; border-width: 4px; }
+      100% { width: 180%; height: 180%; opacity: 0; border-width: 0px; }
+    }
+
+  </style>
+</head>
+<body>
+
+  <img src="krishna-1.jpg" alt="Shri Krishna" class="fullscreen-bg" id="krishnaImg">
+
+  <div class="bottom-vignette"></div>
+
+  <div id="flower-container"></div>
+
+  <div class="dedication">
+    <h1></h1>
+    <p></p>
+  </div>
+
+  <div class="incense-orbit-center" id="incenseDisplay">
+    <div class="incense-wrapper">
+      <div class="sticks-container">
+        <div class="stick left">
+          <div class="smoke-particle"></div><div class="smoke-particle"></div><div class="smoke-particle"></div>
+          <div class="smoke-particle"></div><div class="smoke-particle"></div><div class="smoke-particle"></div>
+          <div class="glowing-tip"></div><div class="stick-base"></div>
+        </div>
+        <div class="stick right">
+          <div class="smoke-particle"></div><div class="smoke-particle"></div><div class="smoke-particle"></div>
+          <div class="smoke-particle"></div><div class="smoke-particle"></div><div class="smoke-particle"></div>
+          <div class="glowing-tip"></div><div class="stick-base"></div>
+        </div>
+      </div>
+      <div class="incense-base"></div>
+    </div>
+  </div>
+
+  <div class="aarti-wrapper" id="aartiDisplay">
+    <div class="aarti-diya">🪔</div>
+  </div>
+
+  <div class="artifact-dock">
+    
+    <div class="action-item" id="btn-flower" onclick="toggleFlowers()">
+      <div class="amulet">🌸</div>
+      <span class="amulet-label">Pushp</span>
+    </div>
+
+    <div class="action-item" id="btn-incense" onclick="toggleIncense()">
+      <div class="amulet">🥢</div>
+      <span class="amulet-label">Dhoop</span>
+    </div>
+
+    <div class="action-item" id="btn-aarti" onclick="toggleAarti()">
+      <div class="amulet">🪔</div>
+      <span class="amulet-label">Aarti</span>
+    </div>
+
+  </div>
+
+  <script>
+    // --- 1. Pushpanjali (Flower Rain) Logic ---
+    let flowerInterval;
+    const flowerEmojis = ['🌸', '🌺', '🌼', '✨', '💮'];
+
+    function toggleFlowers() {
+      const btn = document.getElementById('btn-flower');
+      const container = document.getElementById('flower-container');
+      
+      if (flowerInterval) {
+        // Stop raining
+        clearInterval(flowerInterval);
+        flowerInterval = null;
+        btn.classList.remove('active');
+      } else {
+        // Start raining gracefully
+        btn.classList.add('active');
+        
+        // Increased interval to 400ms (spawns 2.5 flowers per second instead of 12)
+        flowerInterval = setInterval(() => {
+          const f = document.createElement('div');
+          f.className = 'flower';
+          f.innerText = flowerEmojis[Math.floor(Math.random() * flowerEmojis.length)];
+          
+          f.style.left = Math.random() * 100 + 'vw';
+          
+          // Slower fall speed (between 4.5 and 8.5 seconds)
+          const fallDuration = (Math.random() * 4 + 4.5) + 's';
+          f.style.animationDuration = fallDuration;
+          
+          // Slightly larger flowers so they look better floating slowly
+          f.style.fontSize = (Math.random() * 15 + 25) + 'px';
+          
+          container.appendChild(f);
+          
+          setTimeout(() => f.remove(), parseFloat(fallDuration) * 1000);
+        }, 400); 
+      }
+    }
+
+    // --- 2. Dhoop (Incense) Logic ---
+    function toggleIncense() {
+      const display = document.getElementById('incenseDisplay');
+      const btn = document.getElementById('btn-incense');
+      
+      display.classList.toggle('active');
+      btn.classList.toggle('active');
+    }
+
+    // --- 3. Aarti Logic ---
+    function toggleAarti() {
+      const display = document.getElementById('aartiDisplay');
+      const btn = document.getElementById('btn-aarti');
+      
+      display.classList.toggle('active');
+      btn.classList.toggle('active');
+    }
+    
+    // Developer Fallback
+    document.getElementById('krishnaImg').onerror = function() {
+      this.style.display = 'none';
+      document.body.style.background = '#2a1105';
+      const msg = document.createElement('div');
+      msg.style.position = 'absolute';
+      msg.style.top = '40%';
+      msg.style.color = '#ffda75';
+      msg.style.textAlign = 'center';
+      msg.innerHTML = 'Replace "krishna-1.jpg"<br>in the HTML with your image link.';
+      document.body.appendChild(msg);
+    };
+  </script>
+
+</body>
+</html>
