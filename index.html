@@ -172,6 +172,7 @@
       border-radius: 50%; 
       filter: blur(5px); 
       opacity: 0; 
+      will-change: transform, opacity; /* PERFORMANCE FIX: Hardware acceleration for blur & scale */
     }
     
     .incense-orbit-center.active .smoke-particle { 
@@ -377,7 +378,11 @@
           
           container.appendChild(f);
           
-          setTimeout(() => f.remove(), parseFloat(fallDuration) * 1000);
+          // PERFORMANCE FIX: Use animationend event to clean up DOM nodes without memory leaks
+          f.addEventListener('animationend', () => {
+            f.remove();
+          });
+          
         }, 400); 
       }
     }
